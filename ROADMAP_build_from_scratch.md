@@ -24,7 +24,7 @@ This roadmap converts the project plan (`Cloud_Project_Plan_Code_Review_Plagiari
 
 ---
 
-## Stage 0 — Repo + contracts + cloud foundation (Day 0–2)
+## Stage 0 — Repo + contracts + cloud foundation
 
 ### Deliverables
 - Repo initialized with a runnable skeleton (backend + frontend)
@@ -66,7 +66,7 @@ This roadmap converts the project plan (`Cloud_Project_Plan_Code_Review_Plagiari
 
 ---
 
-## Stage 1 — Vertical slice: Upload → stored in GCS → visible in UI (Week 1)
+## Stage 1 — Vertical slice: Upload → stored in GCS → visible in UI
 
 ### Goal
 Get a real file from the browser into the system and stored correctly in GCS, with submission metadata visible in the dashboard.
@@ -100,7 +100,7 @@ Get a real file from the browser into the system and stored correctly in GCS, wi
 
 ---
 
-## Stage 2 — Async orchestration: Pub/Sub trigger + analysis job status (Week 2)
+## Stage 2 — Async orchestration: Pub/Sub trigger + analysis job status 
 
 ### Goal
 Make plagiarism analysis run asynchronously after upload (event-driven), and make its progress visible to the UI.
@@ -130,7 +130,7 @@ Make plagiarism analysis run asynchronously after upload (event-driven), and mak
 
 ---
 
-## Stage 3 — Plagiarism engine MVP: tree-sitter + normalization + TF‑IDF + BigQuery (Week 3–4)
+## Stage 3 — Plagiarism engine MVP: tree-sitter + normalization + TF‑IDF + BigQuery 
 
 ### Goal
 Compute pairwise similarity for submissions within an assignment, store ranked results in BigQuery, and display them in the UI.
@@ -185,7 +185,7 @@ Compute pairwise similarity for submissions within an assignment, store ranked r
 
 ---
 
-## Stage 4 — Vertex AI code review: prompt → JSON → validate → store → render (Week 5–6)
+## Stage 4 — Vertex AI code review: prompt → JSON → validate → store → render 
 
 ### Goal
 Generate consistent, structured AI reviews for a submission using Gemini Pro on Vertex AI, store in BigQuery, and display in the dashboard.
@@ -228,7 +228,7 @@ Generate consistent, structured AI reviews for a submission using Gemini Pro on 
 
 ---
 
-## Stage 5 — Full deployment + CI/CD + staging demo readiness (Week 7–8)
+## Stage 5 — Full deployment + CI/CD + staging demo readiness 
 
 ### Goal
 End-to-end system is deployed on Cloud Run, accessible via a public URL for demos, and stable under basic load.
@@ -264,7 +264,7 @@ Choose one and commit to it:
 
 ---
 
-## Stage 6 — Hardening, performance, and “final submission” readiness (Week 9–12)
+## Stage 6 — Hardening, performance, and “final submission” readiness 
 
 ### Goal
 Make the system reliable in front of evaluators: clear UX, predictable runtime, cost controls, and strong evidence for report/viva.
