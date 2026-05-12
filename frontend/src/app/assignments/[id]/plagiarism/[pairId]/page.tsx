@@ -1,21 +1,9 @@
+import { formatAssignmentName } from "@/lib/assignments";
 import styles from "./pair.module.css";
 
 const leftStudent = "STU-2024-045";
 const rightStudent = "STU-2024-067";
 const fallbackPairLabel = "STU-045 vs STU-067";
-const assignmentNames: Record<string, string> = {
-  "lab-1": "Lab 1: Basics",
-};
-
-const formatAssignmentName = (id: string) => {
-  if (assignmentNames[id]) {
-    return assignmentNames[id];
-  }
-
-  const cleaned = id.replace(/[-_]+/g, " ");
-  return cleaned.replace(/\b\w/g, (char) => char.toUpperCase());
-};
-
 const formatPairLabel = (pairId?: string) => {
   if (!pairId) {
     return fallbackPairLabel;

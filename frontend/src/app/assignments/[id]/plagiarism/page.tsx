@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatAssignmentName } from "@/lib/assignments";
 import styles from "./plagiarism.module.css";
 
 const students = [
@@ -60,19 +61,6 @@ const flaggedPairs = [
     filesMatched: 2,
   },
 ];
-
-const assignmentNames: Record<string, string> = {
-  "lab-1": "Lab 1: Basics",
-};
-
-const formatAssignmentName = (id: string) => {
-  if (assignmentNames[id]) {
-    return assignmentNames[id];
-  }
-
-  const cleaned = id.replace(/[-_]+/g, " ");
-  return cleaned.replace(/\b\w/g, (char) => char.toUpperCase());
-};
 
 const getCellColor = (score: number | null) => {
   if (score === null) {
