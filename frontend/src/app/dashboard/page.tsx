@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Button } from "@/ui/button";
-import { MoreVertical, Eye, FileCode2, ClipboardList, AlertTriangle } from "lucide-react";
+import { MoreVertical, Eye, FileCode2, ClipboardList, AlertTriangle, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const ParticleBackground = dynamic(
   () => import("@/components/shared/ThreeBackground"),
@@ -59,120 +62,11 @@ const getSimilarityLabel = (score: number) => {
 
 export default function DashboardPage() {
   const [selectedSubmission, setSelectedSubmission] = useState<string | null>(null);
+  const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <main className="h-screen bg-transparent overflow-hidden flex flex-col">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-        
-        .font-syne { font-family: 'Syne', sans-serif; }
-        .font-jetbrains { font-family: 'JetBrains Mono', monospace; }
-        
-        .stat-card {
-          background: rgba(15, 15, 20, 0.45);
-          backdrop-filter: blur(8px);
-          border: 1px solid rgba(180, 160, 80, 0.15);
-          border-top: 2px solid #c8a84b;
-          box-shadow: 0 -4px 20px rgba(200, 168, 75, 0.15);
-        }
-        
-        .stat-card:hover {
-          box-shadow: 0 -4px 25px rgba(200, 168, 75, 0.25), 0 0 16px rgba(200, 168, 75, 0.12);
-        }
-        
-        .card-glassmorphism {
-          background: rgba(15, 15, 20, 0.45);
-          backdrop-filter: blur(8px);
-        }
-        
-        .stat-value {
-          font-family: 'JetBrains Mono', monospace;
-          font-weight: 700;
-          background: linear-gradient(to right, #c8a84b, #d4b860);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        
-        .section-label {
-          font-family: 'Syne', sans-serif;
-          font-weight: 700;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          font-size: 0.875rem;
-          color: rgba(255, 255, 255, 0.6);
-        }
-        
-        .table-row {
-          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-          font-family: 'JetBrains Mono', monospace;
-        }
-        
-        .table-row:hover {
-          background-color: rgba(200, 168, 75, 0.05);
-        }
-        
-        .status-badge {
-          font-size: 0.75rem;
-          padding: 0.375rem 0.75rem;
-          border-radius: 9999px;
-          border: 1px solid;
-          background: transparent;
-          text-transform: capitalize;
-          font-weight: 600;
-          font-family: 'JetBrains Mono', monospace;
-        }
-        
-        .similarity-bar {
-          position: relative;
-          height: 8px;
-          background: rgba(0, 0, 0, 0.5);
-          border-radius: 9999px;
-          border: 1px solid rgba(200, 168, 75, 0.1);
-          overflow: hidden;
-        }
-        
-        .similarity-bar-fill {
-          height: 100%;
-          transition: all 0.3s ease;
-          border-radius: 9999px;
-          filter: drop-shadow(0 0 4px currentColor);
-        }
-        
-        .ghost-button {
-          border: 1px solid rgba(200, 168, 75, 0.3);
-          background: transparent;
-          color: #c8a84b;
-          font-size: 0.875rem;
-          font-weight: 600;
-          padding: 0.5rem 1rem;
-          border-radius: 0.5rem;
-          transition: all 0.2s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-          cursor: pointer;
-        }
-        
-        .ghost-button:hover {
-          background: rgba(200, 168, 75, 0.1);
-          border-color: rgba(200, 168, 75, 0.6);
-        }
-        
-        .navbar-border {
-          border-bottom: 1px solid rgba(200, 168, 75, 0.15);
-        }
-        
-        .scrollbar-hide {
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-        }
-        
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
 
       <ParticleBackground opacity={0.4} particleCount={60} particleSize={0.12} lineOpacity={0.35} />
 
@@ -183,17 +77,23 @@ export default function DashboardPage() {
             <div className="flex items-center gap-8">
               <h1 className="text-2xl font-bold font-syne text-white">CodeReview AI</h1>
               <div className="flex gap-1">
-                {["Dashboard", "Assignments", "Submissions"].map((item) => (
-                  <button
-                    key={item}
-                    className={`px-4 py-2 rounded-lg text-sm font-syne font-medium transition-all ${
-                      item === "Dashboard"
+                {[
+                  { label: "Dashboard", path: "/dashboard" },
+                  { label: "Assignments", path: "/assignments" },
+                  { label: "Submissions", path: "/submissions" },
+                  { label: "Submit", path: "/submit" }
+                ].map(({ label, path }) => (
+                  <Link
+                    key={label}
+                    href={path}
+                    className={`px-4 py-2 rounded-lg text-sm font-syne font-medium transition-all cursor-pointer ${
+                      pathname === path
                         ? "bg-[#c8a84b]/20 text-[#c8a84b] border border-[#c8a84b]/30"
                         : "text-white/60 hover:text-white/80"
                     }`}
                   >
-                    {item}
-                  </button>
+                    {label}
+                  </Link>
                 ))}
               </div>
             </div>
@@ -204,11 +104,11 @@ export default function DashboardPage() {
         </nav>
 
         {/* Main Content */}
-        <div className="px-6 lg:px-8 py-6 flex flex-col h-[calc(100%-56px)] bg-transparent">
+        <div className="p-6 flex flex-col h-[calc(100%-56px)] bg-transparent max-w-full overflow-hidden">
           {/* Stats Row */}
-          <div className="flex-shrink-0 h-32 mb-6">
+          <div className="flex-shrink-0 mb-6">
             <p className="section-label mb-4">Dashboard Overview</p>
-            <div className="grid sm:grid-cols-3 gap-6">
+            <div className="grid grid-cols-3 gap-4 w-full">
               {mockStats.map((stat) => {
                 const IconComponent = stat.icon;
                 return (
@@ -225,9 +125,9 @@ export default function DashboardPage() {
           </div>
 
           {/* Main Layout - Two Columns */}
-          <div className="flex gap-6 flex-1 min-h-0">
-            {/* Left Column - Recent Submissions (60%) */}
-            <div className="flex-[1.5] flex flex-col min-h-0">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-6 flex-1 min-h-0 w-full">
+            {/* Left Column - Recent Submissions */}
+            <div className="flex flex-col min-h-0">
               <p className="section-label mb-4 flex-shrink-0">Recent Submissions</p>
               <div className="card-glassmorphism rounded-2xl border border-[#c8a84b]/15 overflow-hidden flex flex-col flex-1 min-h-0">
                 <div className="overflow-y-auto flex-1">
@@ -307,7 +207,10 @@ export default function DashboardPage() {
                           </div>
                         </div>
 
-                        <button className="ghost-button w-full">
+                        <button 
+                          onClick={() => router.push(`/assignments/lab1/plagiarism/${pair.pair[0]}-vs-${pair.pair[1]}`)}
+                          className="ghost-button w-full"
+                        >
                           <Eye size={12} /> Review
                         </button>
                       </div>

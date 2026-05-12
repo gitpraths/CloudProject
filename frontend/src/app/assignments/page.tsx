@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { Calendar, Play, MoreVertical } from 'lucide-react';
+import { Calendar, Play, MoreVertical, Plus } from 'lucide-react';
 
 const ParticleBackground = dynamic(() => import('@/components/shared/ThreeBackground'), {
   ssr: false,
@@ -24,7 +25,7 @@ interface Assignment {
 
 const mockAssignments: Assignment[] = [
   {
-    id: 'lab1',
+    id: 'lab-1-basics',
     name: 'Lab 1: Basics',
     status: 'active',
     submissions: 24,
@@ -33,7 +34,7 @@ const mockAssignments: Assignment[] = [
     avgScore: 87,
   },
   {
-    id: 'lab2',
+    id: 'lab-2-advanced',
     name: 'Lab 2: Advanced',
     status: 'analyzing',
     submissions: 18,
@@ -42,7 +43,7 @@ const mockAssignments: Assignment[] = [
     avgScore: 82,
   },
   {
-    id: 'project1',
+    id: 'project-authentication',
     name: 'Project: Authentication',
     status: 'active',
     submissions: 31,
@@ -51,7 +52,7 @@ const mockAssignments: Assignment[] = [
     avgScore: 79,
   },
   {
-    id: 'midterm',
+    id: 'midterm-review',
     name: 'Midterm Review',
     status: 'closed',
     submissions: 45,
@@ -60,7 +61,7 @@ const mockAssignments: Assignment[] = [
     avgScore: 84,
   },
   {
-    id: 'lab3',
+    id: 'lab-3-data-structures',
     name: 'Lab 3: Data Structures',
     status: 'closed',
     submissions: 22,
@@ -69,7 +70,7 @@ const mockAssignments: Assignment[] = [
     avgScore: 85,
   },
   {
-    id: 'project2',
+    id: 'project-api-design',
     name: 'Project: API Design',
     status: 'active',
     submissions: 15,
@@ -134,11 +135,12 @@ export default function AssignmentsPage() {
                 {[
                   { label: "Dashboard", path: "/dashboard" },
                   { label: "Assignments", path: "/assignments" },
-                  { label: "Submissions", path: "/submissions" }
+                  { label: "Submissions", path: "/submissions" },
+                  { label: "Submit", path: "/submit" }
                 ].map(({ label, path }) => (
-                  <button
+                  <Link
                     key={label}
-                    onClick={() => router.push(path)}
+                    href={path}
                     suppressHydrationWarning
                     className={`px-4 py-2 rounded-lg text-sm font-syne font-medium transition-all cursor-pointer ${
                       mounted && pathname === path
@@ -147,7 +149,7 @@ export default function AssignmentsPage() {
                     }`}
                   >
                     {label}
-                  </button>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -161,7 +163,11 @@ export default function AssignmentsPage() {
           {/* Header Row */}
           <div className="flex items-center justify-between mb-8 flex-shrink-0">
             <h1 className="section-label">ASSIGNMENTS</h1>
-            <button className="ghost-button-new">
+            <button 
+              onClick={() => router.push('/assignments/new')}
+              className="ghost-button-new"
+            >
+              <Plus size={14} />
               <span className="text-sm font-semibold">New Assignment</span>
             </button>
           </div>
@@ -248,136 +254,6 @@ export default function AssignmentsPage() {
         </div>
       </div>
 
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-
-        .font-syne { font-family: 'Syne', sans-serif; }
-        .font-jetbrains { font-family: 'JetBrains Mono', monospace; }
-
-        .section-label {
-          font-family: 'Syne', sans-serif;
-          font-weight: 700;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          font-size: 0.6875rem;
-          color: rgba(255, 255, 255, 0.4);
-        }
-
-        .card-glassmorphism {
-          background: rgba(255, 255, 255, 0.04);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(200, 168, 75, 0.6);
-          box-shadow: 0 0 12px rgba(200, 168, 75, 0.15), 0 0 30px rgba(200, 168, 75, 0.08),
-            inset 0 0 20px rgba(200, 168, 75, 0.03);
-          transition: box-shadow 0.3s ease, border-color 0.3s ease;
-        }
-
-        .card-glassmorphism:hover {
-          background: rgba(255, 255, 255, 0.07);
-          border: 1px solid rgba(200, 168, 75, 0.9);
-          box-shadow: 0 0 20px rgba(200, 168, 75, 0.3), 0 0 60px rgba(200, 168, 75, 0.12),
-            inset 0 0 30px rgba(200, 168, 75, 0.05);
-        }
-
-        .grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 1.25rem;
-          width: 100%;
-          align-content: start;
-        }
-
-        .ghost-button-new {
-          border: 1px solid rgba(200, 168, 75, 0.6);
-          background: transparent;
-          color: #c8a84b;
-          font-size: 0.875rem;
-          font-weight: 600;
-          padding: 0.5rem 1.25rem;
-          border-radius: 0.375rem;
-          transition: all 0.2s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.375rem;
-          cursor: pointer;
-        }
-
-        .ghost-button-new:hover {
-          background: rgba(200, 168, 75, 0.1);
-          border-color: rgba(200, 168, 75, 0.9);
-        }
-
-        .filter-tab {
-          padding: 0.5rem 1rem;
-          border: 1px solid rgba(200, 168, 75, 0.3);
-          background: transparent;
-          color: rgba(255, 255, 255, 0.6);
-          border-radius: 9999px;
-          font-size: 0.875rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          font-family: 'JetBrains Mono', monospace;
-        }
-
-        .filter-tab:hover {
-          border-color: rgba(200, 168, 75, 0.6);
-          color: rgba(255, 255, 255, 0.8);
-        }
-
-        .filter-tab-active {
-          background: rgba(200, 168, 75, 0.15);
-          border-color: rgba(200, 168, 75, 0.9);
-          color: #e0b84e;
-        }
-
-        .filter-tab-badge {
-          font-size: 0.75rem;
-          padding: 0.25rem 0.75rem;
-          border-radius: 9999px;
-          border: 1px solid;
-          background: transparent;
-          font-weight: 600;
-          font-family: 'JetBrains Mono', monospace;
-          white-space: nowrap;
-        }
-
-        .ghost-button {
-          border: 1px solid rgba(200, 168, 75, 0.3);
-          background: transparent;
-          color: #c8a84b;
-          font-size: 0.75rem;
-          font-weight: 600;
-          padding: 0.375rem 0.75rem;
-          border-radius: 0.375rem;
-          transition: all 0.2s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.375rem;
-          cursor: pointer;
-        }
-
-        .ghost-button:hover {
-          background: rgba(200, 168, 75, 0.1);
-          border-color: rgba(200, 168, 75, 0.6);
-        }
-
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-
-        .navbar-border {
-          border-bottom: 1px solid rgba(200, 168, 75, 0.3);
-          box-shadow: 0 1px 20px rgba(200, 168, 75, 0.1);
-        }
-      `}</style>
-    </main>
+          </main>
   );
 }
