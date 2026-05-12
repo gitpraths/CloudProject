@@ -16,12 +16,12 @@ const students = [
 const similarityMatrix: Array<Array<number | null>> = [
   [null, 92, 68, 44, 58, 85, 39, 61],
   [92, null, 73, 52, 64, 81, 45, 56],
-  [68, 73, null, 59, 62, 78, 34, 48],
-  [44, 52, 59, null, 57, 66, 41, 63],
-  [58, 64, 62, 57, null, 88, 49, 84],
-  [85, 81, 78, 66, 88, null, 53, 69],
+  [68, 73, null, 59, 62, 83, 34, 48],
+  [44, 52, 59, null, 57, 66, 41, 86],
+  [58, 82, 62, 57, null, 88, 49, 84],
+  [85, 81, 83, 66, 88, null, 53, 69],
   [39, 45, 34, 41, 49, 53, null, 55],
-  [61, 56, 48, 63, 84, 69, 55, null],
+  [61, 56, 48, 86, 84, 69, 55, null],
 ];
 
 const flaggedPairs = [
@@ -47,11 +47,32 @@ const flaggedPairs = [
     filesMatched: 3,
   },
   {
+    id: "stu-003-stu-006",
+    studentA: "STU-003",
+    studentB: "STU-006",
+    similarity: 83,
+    filesMatched: 2,
+  },
+  {
+    id: "stu-002-stu-005",
+    studentA: "STU-002",
+    studentB: "STU-005",
+    similarity: 82,
+    filesMatched: 3,
+  },
+  {
     id: "stu-005-stu-006",
     studentA: "STU-005",
     studentB: "STU-006",
     similarity: 88,
     filesMatched: 5,
+  },
+  {
+    id: "stu-004-stu-008",
+    studentA: "STU-004",
+    studentB: "STU-008",
+    similarity: 86,
+    filesMatched: 4,
   },
   {
     id: "stu-005-stu-008",
@@ -61,6 +82,9 @@ const flaggedPairs = [
     filesMatched: 2,
   },
 ];
+
+const totalPairsAnalyzed = 276;
+const flaggedPairsPreview = flaggedPairs.slice(0, 5);
 
 const getCellColor = (score: number | null) => {
   if (score === null) {
@@ -104,11 +128,11 @@ export default async function PlagiarismReport({
       <div className={styles.stats}>
         <div className={`${styles.statCard} glass-card`}>
           <span className={styles.statLabel}>Total Pairs Analyzed</span>
-          <span className={styles.statValue}>276</span>
+          <span className={styles.statValue}>{totalPairsAnalyzed}</span>
         </div>
         <div className={`${styles.statCard} glass-card`}>
           <span className={styles.statLabel}>Flagged Pairs</span>
-          <span className={styles.statValue}>8</span>
+          <span className={styles.statValue}>{flaggedPairs.length}</span>
         </div>
         <div className={`${styles.statCard} glass-card`}>
           <span className={styles.statLabel}>Highest Similarity</span>
@@ -178,7 +202,7 @@ export default async function PlagiarismReport({
           <span>Files Matched</span>
           <span>Action</span>
         </div>
-        {flaggedPairs.map((pair) => {
+        {flaggedPairsPreview.map((pair) => {
           const badgeColor = getCellColor(pair.similarity);
           return (
             <div key={pair.id} className={styles.tableRow}>

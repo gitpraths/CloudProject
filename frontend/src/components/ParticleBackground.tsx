@@ -11,7 +11,7 @@ type Particle = {
   alpha: number;
 };
 
-const PARTICLE_COUNT = 70;
+const DEFAULT_PARTICLE_COUNT = 70;
 
 export default function ParticleBackground() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -41,14 +41,17 @@ export default function ParticleBackground() {
     resize();
     window.addEventListener("resize", resize);
 
-    const particles: Particle[] = Array.from({ length: PARTICLE_COUNT }, () => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.35,
-      vy: (Math.random() - 0.5) * 0.35,
-      radius: 1.2 + Math.random() * 2.4,
-      alpha: 0.25 + Math.random() * 0.4,
-    }));
+    const particles: Particle[] = Array.from(
+      { length: DEFAULT_PARTICLE_COUNT },
+      () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        radius: 1.2 + Math.random() * 2.4,
+        alpha: 0.25 + Math.random() * 0.4,
+      }),
+    );
 
     const draw = () => {
       context.clearRect(0, 0, width, height);
