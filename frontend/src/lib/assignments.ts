@@ -1,10 +1,6 @@
-const assignmentNames: Record<string, string> = {
-  "lab-1": "Lab 1: Basics",
-};
-
 export const formatAssignmentName = (id: string) => {
-  if (assignmentNames[id]) {
-    return assignmentNames[id];
+  if (id === "lab-1") {
+    return "Lab 1: Basics";
   }
 
   const cleaned = id.replace(/[-_]+/g, " ");

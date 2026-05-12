@@ -101,6 +101,11 @@ export default function ParticleBackground() {
   }, []);
 
   return (
-    <canvas ref={canvasRef} className="particle-canvas" aria-hidden="true" />
+    <canvas
+      ref={canvasRef}
+      className="particle-canvas"
+      aria-hidden="true"
+      title="Animated particle background"
+    />
   );
 }

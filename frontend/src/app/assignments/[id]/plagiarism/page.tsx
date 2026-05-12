@@ -15,7 +15,7 @@ const students = [
 
 const similarityMatrix: Array<Array<number | null>> = [
   [null, 92, 68, 44, 58, 85, 39, 61],
-  [92, null, 73, 52, 64, 81, 45, 56],
+  [92, null, 73, 52, 82, 81, 45, 56],
   [68, 73, null, 59, 62, 83, 34, 48],
   [44, 52, 59, null, 57, 66, 41, 86],
   [58, 82, 62, 57, null, 88, 49, 84],
