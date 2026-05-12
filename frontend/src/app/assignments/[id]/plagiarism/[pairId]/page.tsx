@@ -3,6 +3,18 @@ import styles from "./pair.module.css";
 const leftStudent = "STU-2024-045";
 const rightStudent = "STU-2024-067";
 const fallbackPairLabel = "STU-045 vs STU-067";
+const assignmentNames: Record<string, string> = {
+  "lab-1": "Lab 1: Basics",
+};
+
+const formatAssignmentName = (id: string) => {
+  if (assignmentNames[id]) {
+    return assignmentNames[id];
+  }
+
+  const cleaned = id.replace(/[-_]+/g, " ");
+  return cleaned.replace(/\b\w/g, (char) => char.toUpperCase());
+};
 
 const formatPairLabel = (pairId?: string) => {
   if (!pairId) {
@@ -55,7 +67,8 @@ export default async function PairDiff({
 }: {
   params: Promise<{ id: string; pairId: string }>;
 }) {
-  const { pairId } = await params;
+  const { id, pairId } = await params;
+  const assignmentName = formatAssignmentName(id);
   const pairLabel = formatPairLabel(pairId);
   return (
     <div className={styles.page}>
@@ -63,7 +76,7 @@ export default async function PairDiff({
         <div className={styles.breadcrumb}>
           <span>Assignments</span>
           <span>→</span>
-          <span>Lab 1: Basics</span>
+          <span>{assignmentName}</span>
           <span>→</span>
           <span>Plagiarism Report</span>
           <span>→</span>

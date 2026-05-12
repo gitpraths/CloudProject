@@ -61,7 +61,18 @@ const flaggedPairs = [
   },
 ];
 
-const assignmentName = "Lab 1: Basics";
+const assignmentNames: Record<string, string> = {
+  "lab-1": "Lab 1: Basics",
+};
+
+const formatAssignmentName = (id: string) => {
+  if (assignmentNames[id]) {
+    return assignmentNames[id];
+  }
+
+  const cleaned = id.replace(/[-_]+/g, " ");
+  return cleaned.replace(/\b\w/g, (char) => char.toUpperCase());
+};
 
 const getCellColor = (score: number | null) => {
   if (score === null) {
@@ -82,6 +93,7 @@ export default async function PlagiarismReport({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const assignmentName = formatAssignmentName(id);
   return (
     <div className={styles.page}>
       <div className={styles.header}>
