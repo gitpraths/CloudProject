@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { ChevronRight, Play, Bug, AlertTriangle, Lightbulb, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Eye, FileCode2, CheckCircle, AlertCircle, Clock, TrendingUp, Play, ChevronRight, ChevronUp, ChevronDown, AlertTriangle, Lightbulb, Bug } from 'lucide-react';
+import { reviewCode } from '@/lib/api';
 import '@/styles/plagiarism.css';
 
 const ParticleBackground = dynamic(() => import('@/components/shared/ThreeBackground'), {
@@ -80,10 +81,23 @@ export default function SubmissionReviewPage({ params }: { params: { id: string 
     codeSmells: true,
     suggestions: true
   });
+  const [isReviewing, setIsReviewing] = useState(false);
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleReview = async (code: string) => {
+    setIsReviewing(true);
+    try {
+      const review = await reviewCode(code);
+      console.log('Review result:', review);
+    } catch (error) {
+      console.error('Review failed:', error);
+    } finally {
+      setIsReviewing(false);
+    }
+  };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {

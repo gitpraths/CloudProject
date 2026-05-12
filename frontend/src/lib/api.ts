@@ -1,5 +1,46 @@
 import { API_BASE_URL } from "@/lib/config";
 
+const BASE_URL = 'http://localhost:8000';
+
+export async function uploadFile(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const response = await fetch(`${BASE_URL}/api/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+  
+  if (!response.ok) throw new Error('Upload failed');
+  return response.json();
+}
+
+export async function getUploadedFiles() {
+  const response = await fetch(`${BASE_URL}/api/upload/list`);
+  if (!response.ok) throw new Error('Failed to fetch files');
+  return response.json();
+}
+
+export async function compareFiles(file1: string, file2: string) {
+  const response = await fetch(`${BASE_URL}/api/plagiarism/compare`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ file1, file2 }),
+  });
+  if (!response.ok) throw new Error('Comparison failed');
+  return response.json();
+}
+
+export async function reviewCode(code: string) {
+  const response = await fetch(`${BASE_URL}/api/review`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code }),
+  });
+  if (!response.ok) throw new Error('Review failed');
+  return response.json();
+}
+
 export class ApiError extends Error {
   readonly status: number;
   readonly requestId: string;

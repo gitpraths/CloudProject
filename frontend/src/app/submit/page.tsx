@@ -6,6 +6,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Upload, X, Check, ChevronRight } from 'lucide-react';
 import '@/styles/plagiarism.css';
+import { uploadFile } from '@/lib/api';
 
 const ParticleBackground = dynamic(() => import('@/components/shared/ThreeBackground'), {
   ssr: false,
@@ -47,6 +48,7 @@ export default function SubmitPage() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: boolean}>({});
+  const [isUploading, setIsUploading] = useState(false);
   
   // Success state
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -119,20 +121,51 @@ export default function SubmitPage() {
     }
   };
 
-  const handleFiles = (files: File[]) => {
+  const handleFiles = async (files: File[]) => {
+    console.log('Files received:', files);
+    
     const validFiles = files.filter(file => {
       const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-      return allowedFileTypes.includes(extension);
+      const isValid = allowedFileTypes.includes(extension);
+      if (!isValid) {
+        console.log(`Invalid file type: ${extension} for file: ${file.name}`);
+      }
+      return isValid;
     });
 
-    const newFiles: UploadedFile[] = validFiles.map(file => ({
-      id: Math.random().toString(36).substr(2, 9),
-      name: file.name,
-      size: file.size
-    }));
+    console.log('Valid files:', validFiles);
 
-    setUploadedFiles(prev => [...prev, ...newFiles]);
-    setErrors(prev => ({ ...prev, files: false }));
+    if (validFiles.length === 0) {
+      console.error('No valid files to upload');
+      return;
+    }
+
+    setIsUploading(true);
+    
+    try {
+      const uploadPromises = validFiles.map(async (file) => {
+        console.log('Uploading file:', file.name);
+        return uploadFile(file);
+      });
+      
+      const results = await Promise.all(uploadPromises);
+      console.log('Upload results:', results);
+      
+      const newFiles: UploadedFile[] = validFiles.map(file => ({
+        id: Math.random().toString(36).substr(2, 9),
+        name: file.name,
+        size: file.size
+      }));
+
+      setUploadedFiles(prev => [...prev, ...newFiles]);
+      setErrors(prev => ({ ...prev, files: false }));
+      console.log('Files added to state:', newFiles);
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert('Upload failed. Please check console for details.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const removeFile = (id: string) => {
@@ -365,11 +398,17 @@ export default function SubmitPage() {
                     
                     {uploadedFiles.length === 0 ? (
                       <div>
-                        <Upload size={48} className="mx-auto mb-4 text-white/40" />
-                        <div className="text-white/80 font-syne mb-2">Drag files here or click to browse</div>
-                        <div className="text-xs text-white/50 font-jetbrains">
-                          Allowed types: {allowedFileTypes.join(', ')}
-                        </div>
+                        {isUploading ? (
+                          <div className="text-white/60 font-syne mb-2">Uploading files...</div>
+                        ) : (
+                          <>
+                            <Upload size={48} className="mx-auto mb-4 text-white/40" />
+                            <div className="text-white/80 font-syne mb-2">Drag files here or click to browse</div>
+                            <div className="text-xs text-white/50 font-jetbrains">
+                              Allowed types: {allowedFileTypes.join(', ')}
+                            </div>
+                          </>
+                        )}
                       </div>
                     ) : (
                       <div className="space-y-2">

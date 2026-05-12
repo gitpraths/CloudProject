@@ -6,6 +6,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Download, ChevronRight } from 'lucide-react';
 import '@/styles/plagiarism.css';
+import { compareFiles } from '@/lib/api';
 
 const ParticleBackground = dynamic(() => import('@/components/shared/ThreeBackground'), {
   ssr: false,
@@ -55,10 +56,15 @@ function SimilarityMatrix({ assignmentId }: { assignmentId: string }) {
     return 'rgba(30, 180, 80, 0.2)';
   };
 
-  const handleCellClick = (studentA: string, studentB: string, similarity: number) => {
+  const handleCellClick = async (studentA: string, studentB: string, similarity: number) => {
     if (similarity > 60 && studentA !== studentB) {
-      const pairId = `${studentA}-vs-${studentB}`;
-      router.push(`/assignments/${assignmentId}/plagiarism/${pairId}`);
+      try {
+        await compareFiles(studentA, studentB);
+        const pairId = `${studentA}-vs-${studentB}`;
+        router.push(`/assignments/${assignmentId}/plagiarism/${pairId}`);
+      } catch (error) {
+        console.error('Comparison failed:', error);
+      }
     }
   };
 

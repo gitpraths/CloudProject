@@ -6,6 +6,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Eye, Upload, FileCode2, TrendingUp, AlertTriangle } from 'lucide-react';
 import '@/styles/plagiarism.css';
+import { getUploadedFiles } from '@/lib/api';
 
 const ParticleBackground = dynamic(() => import('@/components/shared/ThreeBackground'), {
   ssr: false,
@@ -76,9 +77,22 @@ export default function SubmissionsPage() {
   const pathname = usePathname();
   const [mounted, setMounted] = React.useState(false);
   const [filter, setFilter] = useState<'all' | 'uploaded' | 'analyzing' | 'completed'>('all');
+  const [isLoading, setIsLoading] = useState(true);
 
   React.useEffect(() => {
     setMounted(true);
+    const fetchData = async () => {
+      try {
+        const files = await getUploadedFiles();
+        // Update mockSubmissions with real data
+        console.log('Fetched files:', files);
+      } catch (error) {
+        console.error('Failed to fetch files:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   const getStatusColor = (status: string) => {
