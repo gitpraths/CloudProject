@@ -2,6 +2,27 @@ import styles from "./pair.module.css";
 
 const leftStudent = "STU-2024-045";
 const rightStudent = "STU-2024-067";
+const fallbackPairLabel = "STU-045 vs STU-067";
+
+const formatPairLabel = (pairId?: string) => {
+  if (!pairId) {
+    return fallbackPairLabel;
+  }
+
+  const normalized = pairId.replace(/_/g, "-");
+  const parts = normalized.split("-");
+  if (parts.length >= 4) {
+    const left = `${parts[0]}-${parts[1]}`.toUpperCase();
+    const right = `${parts[2]}-${parts[3]}`.toUpperCase();
+    return `${left} vs ${right}`;
+  }
+
+  if (normalized.includes("vs")) {
+    return normalized.replace(/-/g, " ").toUpperCase();
+  }
+
+  return normalized.toUpperCase();
+};
 
 const leftCode = [
   { line: 1, text: "def tokenize_source(source: str) -> list[str]:", match: true },
@@ -29,7 +50,13 @@ const rightCode = [
   { line: 10, text: "    return dot / (magnitude * (sum(y*y for y in b) ** 0.5))", match: true },
 ];
 
-export default function PairDiff() {
+export default async function PairDiff({
+  params,
+}: {
+  params: Promise<{ id: string; pairId: string }>;
+}) {
+  const { pairId } = await params;
+  const pairLabel = formatPairLabel(pairId);
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -40,7 +67,7 @@ export default function PairDiff() {
           <span>→</span>
           <span>Plagiarism Report</span>
           <span>→</span>
-          <span>STU-045 vs STU-067</span>
+          <span>{pairLabel}</span>
         </div>
         <div className={styles.headerRow}>
           <div className={styles.titleRow}>

@@ -76,11 +76,12 @@ const getCellColor = (score: number | null) => {
   return "rgba(30, 180, 80, 0.15)";
 };
 
-export default function PlagiarismReport({
+export default async function PlagiarismReport({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -153,7 +154,7 @@ export default function PlagiarismReport({
                   <Link
                     key={`cell-${rowIndex}-${colIndex}`}
                     className={styles.linkCell}
-                    href={`/assignments/${params.id}/plagiarism/${pairId}`}
+                    href={`/assignments/${id}/plagiarism/${pairId}`}
                   >
                     {cell}
                   </Link>
@@ -189,7 +190,7 @@ export default function PlagiarismReport({
               <span>{pair.filesMatched}</span>
               <Link
                 className={`${styles.actionButton} ghost-button`}
-                href={`/assignments/${params.id}/plagiarism/${pair.id}`}
+                href={`/assignments/${id}/plagiarism/${pair.id}`}
               >
                 View Diff
               </Link>
