@@ -97,5 +97,7 @@ export default function ParticleBackground() {
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="particle-canvas" aria-hidden />;
+  return (
+    <canvas ref={canvasRef} className="particle-canvas" aria-hidden="true" />
+  );
 }

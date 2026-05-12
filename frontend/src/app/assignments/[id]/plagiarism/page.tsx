@@ -17,25 +17,32 @@ const similarityMatrix: Array<Array<number | null>> = [
   [92, null, 73, 52, 64, 81, 45, 56],
   [68, 73, null, 59, 62, 78, 34, 48],
   [44, 52, 59, null, 57, 66, 41, 63],
-  [58, 64, 62, 57, null, 88, 49, 72],
+  [58, 64, 62, 57, null, 88, 49, 84],
   [85, 81, 78, 66, 88, null, 53, 69],
   [39, 45, 34, 41, 49, 53, null, 55],
-  [61, 56, 48, 63, 72, 69, 55, null],
+  [61, 56, 48, 63, 84, 69, 55, null],
 ];
 
 const flaggedPairs = [
   {
-    id: "stu-001-stu-006",
+    id: "stu-001-stu-002",
     studentA: "STU-001",
-    studentB: "STU-006",
+    studentB: "STU-002",
     similarity: 92,
     filesMatched: 4,
   },
   {
-    id: "stu-002-stu-003",
+    id: "stu-001-stu-006",
+    studentA: "STU-001",
+    studentB: "STU-006",
+    similarity: 85,
+    filesMatched: 3,
+  },
+  {
+    id: "stu-002-stu-006",
     studentA: "STU-002",
-    studentB: "STU-003",
-    similarity: 84,
+    studentB: "STU-006",
+    similarity: 81,
     filesMatched: 3,
   },
   {
@@ -46,17 +53,10 @@ const flaggedPairs = [
     filesMatched: 5,
   },
   {
-    id: "stu-004-stu-008",
-    studentA: "STU-004",
+    id: "stu-005-stu-008",
+    studentA: "STU-005",
     studentB: "STU-008",
-    similarity: 81,
-    filesMatched: 2,
-  },
-  {
-    id: "stu-002-stu-005",
-    studentA: "STU-002",
-    studentB: "STU-005",
-    similarity: 80,
+    similarity: 84,
     filesMatched: 2,
   },
 ];

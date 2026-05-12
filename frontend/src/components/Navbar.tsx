@@ -10,7 +10,7 @@ export default function Navbar() {
         CloudProject
       </Link>
       <div className={styles.links}>
-        <Link href="/assignments/lab-1/plagiarism">Assignments</Link>
+        <Link href="/">Assignments</Link>
         <Link href="/assignments/lab-1/plagiarism">Plagiarism</Link>
         <Link href="/assignments/lab-1/plagiarism/stu-045-stu-067">Diffs</Link>
       </div>
