@@ -1,0 +1,214 @@
+.page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.breadcrumb {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.headerRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.assignmentName {
+  font-size: 34px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.statCard {
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.statLabel {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.statValue {
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.matrixCard {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+.sectionLabel {
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(200, 168, 75, 0.95);
+}
+
+.matrixGrid {
+  display: grid;
+  grid-template-columns: 130px repeat(8, minmax(0, 1fr));
+  grid-auto-rows: 44px;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+}
+
+.matrixHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--color-muted);
+  letter-spacing: 0.12em;
+}
+
+.matrixRow {
+  display: contents;
+}
+
+.matrixRowLabel {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--color-muted);
+  letter-spacing: 0.12em;
+}
+
+.linkCell {
+  display: flex;
+}
+
+.cell {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: #f6f2e9;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.cell:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.2);
+}
+
+.flagged {
+  cursor: pointer;
+}
+
+.selfCell {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(12, 16, 26, 0.95);
+  color: #f6f2e9;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.cell:hover .tooltip {
+  opacity: 1;
+}
+
+.tableCard {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tableHeader,
+.tableRow {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 0.8fr 1fr 0.8fr;
+  align-items: center;
+  gap: 12px;
+}
+
+.tableHeader {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.tableRow {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  color: #f6f2e9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 70px;
+}
+
+.actionButton {
+  padding: 8px 14px;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+}
+
+.monoText {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
