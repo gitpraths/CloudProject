@@ -3,5 +3,11 @@ uvicorn[standard]==0.29.0
 python-multipart==0.0.9
 aiofiles==23.2.1
 python-dotenv==1.0.1
+
+# Plagiarism Engine Dependencies
+tree-sitter==0.20.1
 scikit-learn==1.4.2
+numpy==1.26.3
+
+# AI Review
 google-generativeai==0.5.4

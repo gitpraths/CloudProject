@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Tree-sitter build artifacts
+plagiarism_engine/build/tree-sitter-*/
+# Note: languages.so can be committed to avoid teammates running setup
+# Uncomment the line below if you want to force everyone to build locally:
+# plagiarism_engine/build/languages.so
+
+# Test outputs
+test_results/
+*.json
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# GCP
+.gcloud/
+*.json  # Exclude service account keys
+
+# Environment variables
+.env
+.env.local
+
+#custom files
+API_REFERENCE.md
