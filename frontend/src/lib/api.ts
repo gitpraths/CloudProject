@@ -1,46 +1,66 @@
 import { API_BASE_URL } from "@/lib/config";
 
-const BASE_URL = 'http://localhost:8000';
+const BASE_URL = API_BASE_URL || "http://localhost:8000";
 
+// ───────────────────────────────────────────────────────────
+// Upload File
+// ───────────────────────────────────────────────────────────
 export async function uploadFile(file: File) {
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append("file", file);
   
-  const response = await fetch(`${BASE_URL}/api/upload`, {
-    method: 'POST',
+  const response = await fetch(`${BASE_URL}/api/upload/`, {
+    method: "POST",
     body: formData,
   });
   
-  if (!response.ok) throw new Error('Upload failed');
+  if (!response.ok) throw new Error("Upload failed");
   return response.json();
 }
 
+// ───────────────────────────────────────────────────────────
+// Get Uploaded Files
+// ───────────────────────────────────────────────────────────
 export async function getUploadedFiles() {
   const response = await fetch(`${BASE_URL}/api/upload/list`);
-  if (!response.ok) throw new Error('Failed to fetch files');
+  if (!response.ok) throw new Error("Failed to fetch files");
   return response.json();
 }
 
+// ───────────────────────────────────────────────────────────
+// Compare Files (FIXED)
+// ───────────────────────────────────────────────────────────
 export async function compareFiles(file1: string, file2: string) {
   const response = await fetch(`${BASE_URL}/api/plagiarism/compare`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ file1, file2 }),
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      file_id_1: file1,
+      file_id_2: file2,
+    }),
   });
-  if (!response.ok) throw new Error('Comparison failed');
+  if (!response.ok) throw new Error("Comparison failed");
   return response.json();
 }
 
+// ───────────────────────────────────────────────────────────
+// Review File (FIXED)
+// ───────────────────────────────────────────────────────────
 export async function reviewCode(code: string) {
   const response = await fetch(`${BASE_URL}/api/review`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code }),
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      file_id: code,
+    }),
   });
-  if (!response.ok) throw new Error('Review failed');
+  if (!response.ok) throw new Error("Review failed");
   return response.json();
 }
 
+// ───────────────────────────────────────────────────────────
+// Error Class
+// ───────────────────────────────────────────────────────────
 export class ApiError extends Error {
   readonly status: number;
   readonly requestId: string;
@@ -85,6 +105,9 @@ async function safeParseJson(res: Response) {
   }
 }
 
+// ───────────────────────────────────────────────────────────
+// Generic API Wrapper (unchanged)
+// ───────────────────────────────────────────────────────────
 export async function api<TResponse = unknown>(
   path: string,
   opts: ApiRequestOptions = {}
@@ -131,4 +154,3 @@ export async function api<TResponse = unknown>(
 
   return (await res.text()) as unknown as TResponse;
 }
-
