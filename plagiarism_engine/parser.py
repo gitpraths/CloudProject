@@ -29,6 +29,11 @@ class CodeParser:
         Args:
             languages_path: Path to the compiled tree-sitter languages library
         """
+        # Make path absolute relative to this file's directory
+        if not os.path.isabs(languages_path):
+            module_dir = Path(__file__).parent
+            languages_path = str(module_dir / languages_path)
+        
         self.languages_path = languages_path
         self.parser = Parser()
         self.languages: Dict[str, Language] = {}
