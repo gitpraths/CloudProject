@@ -8,10 +8,12 @@ This service:
 2. Reads file contents from disk
 3. Runs the plagiarism engine to analyze all submissions
 4. Returns similarity matrix and flagged pairs for the frontend
+5. Provides detailed comparison with highlighted matching lines
 """
 
 import sys
 from pathlib import Path
+from difflib import SequenceMatcher
 
 # Add plagiarism_engine to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'plagiarism_engine'))
@@ -31,6 +33,111 @@ def resolve_path(file_id: str) -> Path:
     if not matches:
         return None
     return matches[0]
+
+
+def find_matching_lines(code_a: str, code_b: str, similarity_threshold: float = 0.6) -> tuple:
+    """
+    Find matching lines between two code files.
+    
+    Returns:
+        (matched_lines_a, matched_lines_b) - Sets of line numbers that match
+    """
+    lines_a = code_a.split('\n')
+    lines_b = code_b.split('\n')
+    
+    matched_a = set()
+    matched_b = set()
+    
+    # Use SequenceMatcher to find similar blocks
+    matcher = SequenceMatcher(None, lines_a, lines_b)
+    
+    for match in matcher.get_matching_blocks():
+        i, j, size = match
+        if size > 0:  # Only consider actual matches
+            # Add line numbers (1-indexed)
+            for offset in range(size):
+                matched_a.add(i + offset + 1)
+                matched_b.add(j + offset + 1)
+    
+    return matched_a, matched_b
+
+
+def get_detailed_comparison(file_id_1: str, file_id_2: str) -> dict:
+    """
+    Get detailed side-by-side comparison with highlighted matching lines.
+    
+    Returns:
+    {
+        "studentA": str,
+        "studentB": str,
+        "similarity": int (0-100),
+        "codeA": [
+            {"lineNumber": 1, "content": "...", "isMatched": bool},
+            ...
+        ],
+        "codeB": [...],
+        "fileA": {"name": str, "path": str},
+        "fileB": {"name": str, "path": str}
+    }
+    """
+    path1 = resolve_path(file_id_1)
+    path2 = resolve_path(file_id_2)
+
+    if path1 is None or path2 is None:
+        return {"error": "File(s) not found"}
+
+    # Read file contents
+    content1 = read_file(str(path1))
+    content2 = read_file(str(path2))
+    
+    # Get similarity score from engine
+    result = engine.compare_two_submissions(
+        code_a=content1,
+        code_b=content2,
+        filename_a=path1.name,
+        filename_b=path2.name
+    )
+    
+    # Find matching lines
+    matched_lines_a, matched_lines_b = find_matching_lines(content1, content2)
+    
+    # Format code with line numbers and match flags
+    lines_a = content1.split('\n')
+    lines_b = content2.split('\n')
+    
+    code_a_formatted = [
+        {
+            "lineNumber": i + 1,
+            "content": line,
+            "isMatched": (i + 1) in matched_lines_a
+        }
+        for i, line in enumerate(lines_a)
+    ]
+    
+    code_b_formatted = [
+        {
+            "lineNumber": i + 1,
+            "content": line,
+            "isMatched": (i + 1) in matched_lines_b
+        }
+        for i, line in enumerate(lines_b)
+    ]
+    
+    return {
+        "studentA": file_id_1,
+        "studentB": file_id_2,
+        "similarity": int(result['similarity_score'] * 100),
+        "codeA": code_a_formatted,
+        "codeB": code_b_formatted,
+        "fileA": {
+            "name": path1.name.split("_", 1)[1] if "_" in path1.name else path1.name,
+            "path": str(path1)
+        },
+        "fileB": {
+            "name": path2.name.split("_", 1)[1] if "_" in path2.name else path2.name,
+            "path": str(path2)
+        }
+    }
 
 
 def analyze_assignment_plagiarism(assignment_id: str) -> dict:

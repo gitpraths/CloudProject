@@ -25,6 +25,15 @@ interface Assignment {
 
 const mockAssignments: Assignment[] = [
   {
+    id: 'test_assignment_001',
+    name: 'Test Assignment (Plagiarism Engine)',
+    status: 'active',
+    submissions: 3,
+    flagged: 1,
+    deadline: 'May 14',
+    avgScore: 0,
+  },
+  {
     id: 'lab-1-basics',
     name: 'Lab 1: Basics',
     status: 'active',
@@ -107,6 +116,10 @@ export default function AssignmentsPage() {
 
   const handleViewSubmissions = (assignmentId: string) => {
     router.push(`/assignments/${assignmentId}`);
+  };
+
+  const handleAnalyze = (assignmentId: string) => {
+    router.push(`/assignments/${assignmentId}/plagiarism`);
   };
 
   return (
@@ -241,7 +254,10 @@ export default function AssignmentsPage() {
                       >
                         <span>View</span>
                       </button>
-                      <button className="ghost-button flex-1">
+                      <button 
+                        onClick={() => handleAnalyze(assignment.id)}
+                        className="ghost-button flex-1"
+                      >
                         <Play size={12} />
                         <span>Analyze</span>
                       </button>

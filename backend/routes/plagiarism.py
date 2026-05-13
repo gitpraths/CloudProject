@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from services.plagiarism_service import run_plagiarism_check, analyze_assignment_plagiarism
+from services.plagiarism_service import run_plagiarism_check, analyze_assignment_plagiarism, get_detailed_comparison
 
 router = APIRouter()
 
@@ -66,5 +66,39 @@ async def analyze_assignment(assignment_id: str):
     
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
+    
+    return {"success": True, **result}
+
+
+@router.get("/compare-detailed/{file_id_1}/{file_id_2}")
+async def get_detailed_code_comparison(file_id_1: str, file_id_2: str):
+    """
+    Get detailed side-by-side comparison with highlighted matching lines.
+    
+    Returns code with line numbers and match flags for frontend display.
+    
+    Example response:
+    {
+        "success": true,
+        "studentA": "student_001",
+        "studentB": "student_002",
+        "similarity": 95,
+        "codeA": [
+            {"lineNumber": 1, "content": "def factorial(n):", "isMatched": false},
+            {"lineNumber": 2, "content": "    if n == 0:", "isMatched": true},
+            ...
+        ],
+        "codeB": [...],
+        "fileA": {"name": "solution.py", "path": "..."},
+        "fileB": {"name": "solution.py", "path": "..."}
+    }
+    """
+    if file_id_1 == file_id_2:
+        raise HTTPException(status_code=400, detail="Cannot compare a file with itself.")
+    
+    result = get_detailed_comparison(file_id_1, file_id_2)
+    
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
     
     return {"success": True, **result}

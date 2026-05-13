@@ -6,7 +6,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Download, ChevronRight } from 'lucide-react';
 import '@/styles/plagiarism.css';
-import { compareFiles } from '@/lib/api';
+import { compareFiles, analyzePlagiarism } from '@/lib/api';
 
 const ParticleBackground = dynamic(() => import('@/components/shared/ThreeBackground'), {
   ssr: false,
@@ -45,7 +45,7 @@ const mockFlaggedPairs: FlaggedPair[] = [
 
 const studentIds = Object.keys(mockSimilarityData);
 
-function SimilarityMatrix({ assignmentId }: { assignmentId: string }) {
+function SimilarityMatrix({ assignmentId, similarityData, studentIds }: { assignmentId: string, similarityData: SimilarityData, studentIds: string[] }) {
   const router = useRouter();
   const [hoveredCell, setHoveredCell] = useState<{row: string, col: string} | null>(null);
 
@@ -59,11 +59,10 @@ function SimilarityMatrix({ assignmentId }: { assignmentId: string }) {
   const handleCellClick = async (studentA: string, studentB: string, similarity: number) => {
     if (similarity > 60 && studentA !== studentB) {
       try {
-        await compareFiles(studentA, studentB);
         const pairId = `${studentA}-vs-${studentB}`;
         router.push(`/assignments/${assignmentId}/plagiarism/${pairId}`);
       } catch (error) {
-        console.error('Comparison failed:', error);
+        console.error('Navigation failed:', error);
       }
     }
   };
@@ -112,7 +111,7 @@ function SimilarityMatrix({ assignmentId }: { assignmentId: string }) {
                   {rowId}
                 </td>
                 {studentIds.map(colId => {
-                  const similarity = mockSimilarityData[rowId][colId];
+                  const similarity = similarityData[rowId][colId];
                   const isDiagonal = rowId === colId;
                   const isHovered = hoveredCell?.row === rowId && hoveredCell?.col === colId;
                   
@@ -175,7 +174,7 @@ function SimilarityMatrix({ assignmentId }: { assignmentId: string }) {
   );
 }
 
-function FlaggedPairsTable() {
+function FlaggedPairsTable({ flaggedPairs, assignmentId }: { flaggedPairs: FlaggedPair[], assignmentId: string }) {
   const router = useRouter();
 
   const getSimilarityColor = (similarity: number) => {
@@ -198,7 +197,7 @@ function FlaggedPairsTable() {
             </tr>
           </thead>
           <tbody>
-            {mockFlaggedPairs.map((pair) => {
+            {flaggedPairs.map((pair) => {
               const similarityColor = getSimilarityColor(pair.similarity);
               return (
                 <tr key={pair.id} className="border-b border-white/5">
@@ -219,7 +218,7 @@ function FlaggedPairsTable() {
                   <td className="py-3 text-sm text-white/60">{pair.filesMatched}</td>
                   <td className="py-3">
                     <button
-                      onClick={() => router.push(`/assignments/lab1/plagiarism/${pair.studentA}-vs-${pair.studentB}`)}
+                      onClick={() => router.push(`/assignments/${assignmentId}/plagiarism/${pair.studentA}-vs-${pair.studentB}`)}
                       className="ghost-button text-xs"
                     >
                       View Diff
@@ -239,18 +238,65 @@ export default function PlagiarismPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const [similarityData, setSimilarityData] = React.useState<SimilarityData>({});
+  const [flaggedPairs, setFlaggedPairs] = React.useState<FlaggedPair[]>([]);
+  const [studentIds, setStudentIds] = React.useState<string[]>([]);
+  const [stats, setStats] = React.useState({ totalPairs: 0, flaggedCount: 0, maxSimilarity: 0 });
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
 
+  React.useEffect(() => {
+    async function loadPlagiarismData() {
+      try {
+        setLoading(true);
+        console.log('Fetching plagiarism data for assignment:', params.id);
+        const result = await analyzePlagiarism(params.id);
+        console.log('Plagiarism result:', result);
+        
+        if (result.success) {
+          setSimilarityData(result.similarity_matrix);
+          setFlaggedPairs(result.flagged_pairs);
+          const ids = Object.keys(result.similarity_matrix);
+          setStudentIds(ids);
+          
+          // Calculate stats
+          const totalPairs = (ids.length * (ids.length - 1)) / 2;
+          const maxSim = result.flagged_pairs.length > 0 
+            ? Math.max(...result.flagged_pairs.map((p: FlaggedPair) => p.similarity))
+            : 0;
+          
+          setStats({
+            totalPairs,
+            flaggedCount: result.flagged_pairs.length,
+            maxSimilarity: maxSim
+          });
+        } else {
+          setError('Analysis returned no data');
+        }
+        setLoading(false);
+      } catch (err) {
+        console.error('Failed to load plagiarism data:', err);
+        setError(`Failed to load plagiarism analysis: ${err}`);
+        setLoading(false);
+      }
+    }
+    
+    loadPlagiarismData();
+  }, [params.id]);
+
   const handleExportReport = () => {
+    if (studentIds.length === 0) return;
+    
     // Create CSV content for similarity matrix
     let csvContent = 'Student A,Student B,Similarity (%)\n';
     
     studentIds.forEach(studentA => {
       studentIds.forEach(studentB => {
-        const similarity = mockSimilarityData[studentA][studentB];
+        const similarity = similarityData[studentA][studentB];
         if (studentA !== studentB) { // Skip diagonal
           csvContent += `${studentA},${studentB},${similarity}\n`;
         }
@@ -260,7 +306,7 @@ export default function PlagiarismPage({ params }: { params: { id: string } }) {
     // Add flagged pairs section
     csvContent += '\nFlagged Pairs\n';
     csvContent += 'Student A,Student B,Similarity (%),Files Matched\n';
-    mockFlaggedPairs.forEach(pair => {
+    flaggedPairs.forEach(pair => {
       csvContent += `${pair.studentA},${pair.studentB},${pair.similarity},${pair.filesMatched}\n`;
     });
 
@@ -275,6 +321,22 @@ export default function PlagiarismPage({ params }: { params: { id: string } }) {
     link.click();
     document.body.removeChild(link);
   };
+
+  if (loading) {
+    return (
+      <main className="h-screen flex items-center justify-center bg-transparent">
+        <div className="text-white text-xl">Loading plagiarism analysis...</div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="h-screen flex items-center justify-center bg-transparent">
+        <div className="text-red-400 text-xl">{error}</div>
+      </main>
+    );
+  }
 
   return (
     <main className="h-screen flex flex-col overflow-hidden bg-transparent" suppressHydrationWarning>
@@ -352,23 +414,23 @@ export default function PlagiarismPage({ params }: { params: { id: string } }) {
           <div className="grid grid-cols-3 gap-4 mb-8 flex-shrink-0">
             <div className="card-glassmorphism rounded-lg p-4">
               <div className="text-xs text-white/50 font-syne mb-1">Total Pairs Analyzed</div>
-              <div className="text-2xl font-bold text-[#e0b84e]">276</div>
+              <div className="text-2xl font-bold text-[#e0b84e]">{stats.totalPairs}</div>
             </div>
             <div className="card-glassmorphism rounded-lg p-4">
               <div className="text-xs text-white/50 font-syne mb-1">Flagged Pairs</div>
-              <div className="text-2xl font-bold text-[#e0b84e]">8</div>
+              <div className="text-2xl font-bold text-[#e0b84e]">{stats.flaggedCount}</div>
             </div>
             <div className="card-glassmorphism rounded-lg p-4">
               <div className="text-xs text-white/50 font-syne mb-1">Highest Similarity</div>
-              <div className="text-2xl font-bold text-[#e0b84e]">92%</div>
+              <div className="text-2xl font-bold text-[#e0b84e]">{stats.maxSimilarity}%</div>
             </div>
           </div>
 
           {/* Main Content */}
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto scrollbar-hide space-y-6">
-              <SimilarityMatrix assignmentId={params.id} />
-              <FlaggedPairsTable />
+              <SimilarityMatrix assignmentId={params.id} similarityData={similarityData} studentIds={studentIds} />
+              <FlaggedPairsTable flaggedPairs={flaggedPairs} assignmentId={params.id} />
             </div>
           </div>
         </div>

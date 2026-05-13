@@ -41,6 +41,18 @@ export async function reviewCode(code: string) {
   return response.json();
 }
 
+export async function analyzePlagiarism(assignmentId: string) {
+  const response = await fetch(`${BASE_URL}/api/plagiarism/analyze/${assignmentId}`);
+  if (!response.ok) throw new Error('Plagiarism analysis failed');
+  return response.json();
+}
+
+export async function getDetailedComparison(fileId1: string, fileId2: string) {
+  const response = await fetch(`${BASE_URL}/api/plagiarism/compare-detailed/${fileId1}/${fileId2}`);
+  if (!response.ok) throw new Error('Detailed comparison failed');
+  return response.json();
+}
+
 export class ApiError extends Error {
   readonly status: number;
   readonly requestId: string;
