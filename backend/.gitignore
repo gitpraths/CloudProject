@@ -2,4 +2,8 @@ __pycache__/
 *.pyc
 uploads/
 venv/
+.envsubmissions.db
+uploads/
 .env
+__pycache__/
+*.pyc

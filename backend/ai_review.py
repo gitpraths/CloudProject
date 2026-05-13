@@ -1,40 +1,41 @@
-"""
-ai_review.py
-============
-AI-powered code review module.
+import google.generativeai as genai
+import os
+import json
 
-YOUR TEAMMATE fills in the real logic here (e.g. Vertex AI / Gemini call).
-The backend calls  review_code()  and expects the return shape below.
-Do NOT change the function signature or return structure — the backend depends on it.
-"""
-
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY", "AIzaSyBI16-o4mU0HNyogmc_Oy4xfdv1PlTq45k"))
 
 def review_code(file_content: str, language: str = "unknown") -> dict:
+    model = genai.GenerativeModel("gemini-2.0-flash")
+
+    prompt = f"""
+    Review this {language} code and respond ONLY with a JSON object, no markdown, no backticks.
+    
+    The JSON must have exactly these fields:
+    {{
+        "quality_score": <number 0-100>,
+        "bugs": [<list of bug descriptions>],
+        "code_smells": [<list of code smell descriptions>],
+        "best_practices": [<list of improvement suggestions>],
+        "complexity": "<low or medium or high>",
+        "summary": "<one paragraph overall assessment>"
+    }}
+    
+    Code to review:
+    {file_content}
     """
-    Analyse a code file and return structured review feedback.
 
-    Parameters
-    ----------
-    file_content : str   Raw source code to review.
-    language     : str   Programming language hint (e.g. 'python', 'java').
-
-    Returns
-    -------
-    dict with keys:
-        quality_score    : int        0 – 100
-        bugs             : list[str]  Identified bugs or errors
-        code_smells      : list[str]  Bad practices / smells detected
-        best_practices   : list[str]  Suggestions to improve the code
-        complexity       : str        'low' | 'medium' | 'high'
-        summary          : str        One-paragraph overall assessment
-    """
-
-    # ── STUB — replace with real LLM call ────────────────────────────────────
-    return {
-        "quality_score": 0,
-        "bugs": [],
-        "code_smells": [],
-        "best_practices": [],
-        "complexity": "unknown",
-        "summary": "AI review module not yet implemented.",
-    }
+    try:
+        response = model.generate_content(prompt)
+        text = response.text.strip()
+        # Clean up if Gemini adds backticks anyway
+        text = text.replace("```json", "").replace("```", "").strip()
+        return json.loads(text)
+    except Exception as e:
+        return {
+            "quality_score": 0,
+            "bugs": [],
+            "code_smells": [],
+            "best_practices": [],
+            "complexity": "unknown",
+            "summary": f"AI review failed: {str(e)}",
+        }
