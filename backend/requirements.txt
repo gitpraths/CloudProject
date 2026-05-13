@@ -9,5 +9,7 @@ tree-sitter==0.20.1
 scikit-learn==1.4.2
 numpy==1.26.3
 
-# AI Review
-google-generativeai==0.5.4
+# AI Review - Vertex AI
+google-cloud-aiplatform==1.52.0
+google-cloud-storage==2.16.0
+google-cloud-bigquery==3.21.0

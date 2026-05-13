@@ -6,7 +6,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Eye, Upload, FileCode2, TrendingUp, AlertTriangle } from 'lucide-react';
 import '@/styles/plagiarism.css';
-import { getUploadedFiles } from '@/lib/api';
+import { getAllSubmissions } from '@/lib/api';
 
 const ParticleBackground = dynamic(() => import('@/components/shared/ThreeBackground'), {
   ssr: false,
@@ -78,17 +78,23 @@ export default function SubmissionsPage() {
   const [mounted, setMounted] = React.useState(false);
   const [filter, setFilter] = useState<'all' | 'uploaded' | 'analyzing' | 'completed'>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [submissions, setSubmissions] = useState<any[]>([]);
 
   React.useEffect(() => {
     setMounted(true);
+  }, []);
+
+  React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const files = await getUploadedFiles();
-        // Update mockSubmissions with real data
-        console.log('Fetched files:', files);
+        setIsLoading(true);
+        const result = await getAllSubmissions();
+        if (result.success) {
+          setSubmissions(result.submissions);
+        }
+        setIsLoading(false);
       } catch (error) {
-        console.error('Failed to fetch files:', error);
-      } finally {
+        console.error('Failed to fetch submissions:', error);
         setIsLoading(false);
       }
     };
@@ -108,19 +114,19 @@ export default function SubmissionsPage() {
     }
   };
 
-  const filteredSubmissions = mockSubmissions.filter(submission => 
+  const filteredSubmissions = submissions.filter(submission => 
     filter === 'all' || submission.status === filter
   );
 
   const stats = {
-    total: mockSubmissions.length,
-    uploaded: mockSubmissions.filter(s => s.status === 'uploaded').length,
-    analyzing: mockSubmissions.filter(s => s.status === 'analyzing').length,
-    completed: mockSubmissions.filter(s => s.status === 'completed').length,
-    avgScore: mockSubmissions
-      .filter(s => s.aiScore !== undefined)
-      .reduce((sum, s) => sum + (s.aiScore || 0), 0) / 
-      mockSubmissions.filter(s => s.aiScore !== undefined).length
+    total: submissions.length,
+    uploaded: submissions.filter(s => s.status === 'uploaded').length,
+    analyzing: submissions.filter(s => s.status === 'analyzing').length,
+    completed: submissions.filter(s => s.status === 'reviewed' || s.status === 'flagged').length,
+    avgScore: submissions
+      .filter(s => s.ai_score > 0)
+      .reduce((sum, s) => sum + s.ai_score, 0) / 
+      (submissions.filter(s => s.ai_score > 0).length || 1)
   };
 
   return (
@@ -241,41 +247,57 @@ export default function SubmissionsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredSubmissions.map((submission) => {
-                      const statusColor = getStatusColor(submission.status);
-                      return (
-                        <tr key={submission.id} className="table-row transition-colors">
-                          <td className="px-6 py-4 text-white/80 font-jetbrains">{submission.studentId}</td>
-                          <td className="px-6 py-4 text-white/80">{submission.assignment}</td>
-                          <td className="px-6 py-4">
-                            <span
-                              className="filter-tab-badge"
-                              style={{
-                                backgroundColor: statusColor.bg,
-                                borderColor: statusColor.border,
-                                color: statusColor.text
-                              }}
-                            >
-                              {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-white/60 font-jetbrains">{submission.submitted}</td>
-                          <td className="px-6 py-4">
-                            {submission.status === 'uploaded' || submission.status === 'analyzing' ? (
-                              <span className="text-white/40 font-jetbrains">Pending</span>
-                            ) : (
-                              <span className="text-[#e0b84e] font-bold font-jetbrains">{submission.aiScore}/100</span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4">
-                            <Link href={`/submissions/${submission.id}`} className="ghost-button">
-                              <Eye size={12} />
-                              View Review
-                            </Link>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {isLoading ? (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-8 text-center text-white/60">
+                          Loading submissions...
+                        </td>
+                      </tr>
+                    ) : filteredSubmissions.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-8 text-center text-white/60">
+                          No submissions found
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredSubmissions.map((submission) => {
+                        const statusColor = getStatusColor(submission.status);
+                        return (
+                          <tr key={submission.id} className="table-row transition-colors">
+                            <td className="px-6 py-4 text-white/80 font-jetbrains">{submission.student_id}</td>
+                            <td className="px-6 py-4 text-white/80">{submission.assignment}</td>
+                            <td className="px-6 py-4">
+                              <span
+                                className="filter-tab-badge"
+                                style={{
+                                  backgroundColor: statusColor.bg,
+                                  borderColor: statusColor.border,
+                                  color: statusColor.text
+                                }}
+                              >
+                                {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-white/60 font-jetbrains">
+                              {new Date(submission.uploaded_at).toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4">
+                              {submission.ai_score === 0 ? (
+                                <span className="text-white/40 font-jetbrains">Pending</span>
+                              ) : (
+                                <span className="text-[#e0b84e] font-bold font-jetbrains">{submission.ai_score}/100</span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4">
+                              <Link href={`/submissions/${submission.file_id}`} className="ghost-button">
+                                <Eye size={12} />
+                                View Review
+                              </Link>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>

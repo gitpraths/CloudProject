@@ -53,6 +53,30 @@ export async function getDetailedComparison(fileId1: string, fileId2: string) {
   return response.json();
 }
 
+export async function getAssignments() {
+  const response = await fetch(`${BASE_URL}/api/assignments`);
+  if (!response.ok) throw new Error('Failed to fetch assignments');
+  return response.json();
+}
+
+export async function getAssignmentDetails(assignmentId: string) {
+  const response = await fetch(`${BASE_URL}/api/assignments/${assignmentId}`);
+  if (!response.ok) throw new Error('Failed to fetch assignment details');
+  return response.json();
+}
+
+export async function getDashboardStats() {
+  const response = await fetch(`${BASE_URL}/api/dashboard/stats`);
+  if (!response.ok) throw new Error('Failed to fetch dashboard stats');
+  return response.json();
+}
+
+export async function getAllSubmissions() {
+  const response = await fetch(`${BASE_URL}/api/upload/list`);
+  if (!response.ok) throw new Error('Failed to fetch submissions');
+  return response.json();
+}
+
 export class ApiError extends Error {
   readonly status: number;
   readonly requestId: string;

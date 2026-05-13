@@ -275,12 +275,12 @@ export default function PlagiarismPage({ params }: { params: { id: string } }) {
             maxSimilarity: maxSim
           });
         } else {
-          setError('Analysis returned no data');
+          setError(result.error || 'Analysis returned no data');
         }
         setLoading(false);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to load plagiarism data:', err);
-        setError(`Failed to load plagiarism analysis: ${err}`);
+        setError(`Failed to load plagiarism analysis: ${err.message || err}`);
         setLoading(false);
       }
     }
@@ -333,7 +333,19 @@ export default function PlagiarismPage({ params }: { params: { id: string } }) {
   if (error) {
     return (
       <main className="h-screen flex items-center justify-center bg-transparent">
-        <div className="text-red-400 text-xl">{error}</div>
+        <div className="text-center max-w-md">
+          <div className="text-red-400 text-xl mb-4">{error}</div>
+          <p className="text-white/60 mb-4">
+            This assignment may not have any submissions with code files yet. 
+            Upload some code files to this assignment first.
+          </p>
+          <button 
+            onClick={() => router.push(`/assignments/${params.id}`)}
+            className="ghost-button-new"
+          >
+            Back to Assignment
+          </button>
+        </div>
       </main>
     );
   }

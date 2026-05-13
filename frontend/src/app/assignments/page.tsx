@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Calendar, Play, MoreVertical, Plus } from 'lucide-react';
+import { getAssignments, analyzePlagiarism } from '@/lib/api';
 
 const ParticleBackground = dynamic(() => import('@/components/shared/ThreeBackground'), {
   ssr: false,
@@ -94,12 +95,31 @@ export default function AssignmentsPage() {
   const pathname = usePathname();
   const [filter, setFilter] = useState<FilterType>('all');
   const [mounted, setMounted] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
+  const [assignments, setAssignments] = React.useState<Assignment[]>([]);
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
 
-  const filteredAssignments = mockAssignments.filter(
+  React.useEffect(() => {
+    async function loadAssignments() {
+      try {
+        setLoading(true);
+        const result = await getAssignments();
+        if (result.success) {
+          setAssignments(result.assignments);
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to load assignments:', error);
+        setLoading(false);
+      }
+    }
+    loadAssignments();
+  }, []);
+
+  const filteredAssignments = assignments.filter(
     (assignment) => filter === 'all' || assignment.status === filter
   );
 
@@ -118,8 +138,16 @@ export default function AssignmentsPage() {
     router.push(`/assignments/${assignmentId}`);
   };
 
-  const handleAnalyze = (assignmentId: string) => {
-    router.push(`/assignments/${assignmentId}/plagiarism`);
+  const handleAnalyze = async (assignmentId: string) => {
+    try {
+      // Trigger plagiarism analysis
+      await analyzePlagiarism(assignmentId);
+      // Navigate to plagiarism report
+      router.push(`/assignments/${assignmentId}/plagiarism`);
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      alert('Failed to analyze assignment. Please try again.');
+    }
   };
 
   return (
@@ -200,8 +228,13 @@ export default function AssignmentsPage() {
 
           {/* Grid */}
           <div className="flex-1 overflow-y-auto scrollbar-hide">
-            <div className="grid">
-              {filteredAssignments.map((assignment) => {
+            {loading ? (
+              <div className="text-white text-center py-8">Loading assignments...</div>
+            ) : filteredAssignments.length === 0 ? (
+              <div className="text-white/60 text-center py-8">No assignments found. Upload some files to create assignments!</div>
+            ) : (
+              <div className="grid">
+                {filteredAssignments.map((assignment) => {
                 const statusColor = getStatusColor(assignment.status);
                 return (
                   <div
@@ -266,6 +299,7 @@ export default function AssignmentsPage() {
                 );
               })}
             </div>
+            )}
           </div>
         </div>
       </div>

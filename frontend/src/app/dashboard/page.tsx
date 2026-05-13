@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Button } from "@/ui/button";
 import { MoreVertical, Eye, FileCode2, ClipboardList, AlertTriangle, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getDashboardStats } from "@/lib/api";
 
 const ParticleBackground = dynamic(
   () => import("@/components/shared/ThreeBackground"),
@@ -64,6 +65,27 @@ export default function DashboardPage() {
   const [selectedSubmission, setSelectedSubmission] = useState<string | null>(null);
   const pathname = usePathname();
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ total_submissions: 0, active_assignments: 0, flagged_pairs: 0 });
+  const [recentSubmissions, setRecentSubmissions] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadDashboard() {
+      try {
+        setLoading(true);
+        const result = await getDashboardStats();
+        if (result.success) {
+          setStats(result.stats);
+          setRecentSubmissions(result.recent_submissions);
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to load dashboard:', error);
+        setLoading(false);
+      }
+    }
+    loadDashboard();
+  }, []);
 
   return (
     <main className="h-screen bg-transparent overflow-hidden flex flex-col">
@@ -108,20 +130,28 @@ export default function DashboardPage() {
           {/* Stats Row */}
           <div className="flex-shrink-0 mb-6">
             <p className="section-label mb-4">Dashboard Overview</p>
-            <div className="grid grid-cols-3 gap-4 w-full">
-              {mockStats.map((stat) => {
-                const IconComponent = stat.icon;
-                return (
-                  <div key={stat.label} className="stat-card p-5 rounded-2xl transition-all">
-                    <div className="flex items-start justify-between mb-4">
-                      <IconComponent size={20} className="text-[#c8a84b]/60" strokeWidth={1.5} />
+            {loading ? (
+              <div className="text-white/60 text-center py-8">Loading dashboard...</div>
+            ) : (
+              <div className="grid grid-cols-3 gap-4 w-full">
+                {[
+                  { label: "Total Submissions", value: stats.total_submissions, icon: FileCode2 },
+                  { label: "Assignments Active", value: stats.active_assignments, icon: ClipboardList },
+                  { label: "Flagged Pairs", value: stats.flagged_pairs, icon: AlertTriangle }
+                ].map((stat) => {
+                  const IconComponent = stat.icon;
+                  return (
+                    <div key={stat.label} className="stat-card p-5 rounded-2xl transition-all">
+                      <div className="flex items-start justify-between mb-4">
+                        <IconComponent size={20} className="text-[#c8a84b]/60" strokeWidth={1.5} />
+                      </div>
+                      <div className="stat-value text-3xl md:text-4xl font-bold mb-2">{stat.value}</div>
+                      <p className="section-label text-xs">{stat.label}</p>
                     </div>
-                    <div className="stat-value text-3xl md:text-4xl font-bold mb-2">{stat.value}</div>
-                    <p className="section-label text-xs">{stat.label}</p>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Main Layout - Two Columns */}
@@ -141,20 +171,22 @@ export default function DashboardPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {mockSubmissions.slice(0, 5).map((submission) => (
+                      {recentSubmissions.slice(0, 5).map((submission) => (
                         <tr
                           key={submission.id}
                           className="table-row transition-colors cursor-pointer"
-                          onClick={() => setSelectedSubmission(submission.id)}
+                          onClick={() => setSelectedSubmission(submission.file_id)}
                         >
-                          <td className="px-6 py-3 text-sm text-white font-jetbrains font-medium">{submission.student}</td>
+                          <td className="px-6 py-3 text-sm text-white font-jetbrains font-medium">{submission.student_id}</td>
                           <td className="px-6 py-3 text-sm text-white/80 font-syne">{submission.assignment}</td>
                           <td className="px-6 py-3">
                             <span className={`status-badge ${getStatusBadge(submission.status)}`}>
                               {submission.status}
                             </span>
                           </td>
-                          <td className="px-6 py-3 text-xs text-white/60 font-jetbrains">{submission.created}</td>
+                          <td className="px-6 py-3 text-xs text-white/60 font-jetbrains">
+                            {new Date(submission.uploaded_at).toLocaleString()}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

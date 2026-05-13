@@ -1,30 +1,14 @@
 """
 services/review_service.py
 ===========================
-Thin service layer that:
-1. Resolves file_id → file path on disk.
-2. Reads the file content.
-3. Detects the programming language from the file extension.
-4. Calls the AI review module (ai_review.py).
-5. Returns the result dict.
+AI-powered code review service using Vertex AI (Gemini).
 """
 
 from pathlib import Path
 from utils.file_utils import UPLOAD_DIR, read_file
-import ai_review as ai_review_module
-
-EXTENSION_LANGUAGE_MAP = {
-    ".py": "python",
-    ".js": "javascript",
-    ".ts": "typescript",
-    ".java": "java",
-    ".c": "c",
-    ".cpp": "cpp",
-    ".cs": "csharp",
-    ".go": "go",
-    ".rb": "ruby",
-    ".php": "php",
-}
+from services.vertex_service import call_gemini
+from services.prompt_service import build_review_prompt
+from services.parser_service import parse_review_response
 
 
 def resolve_path(file_id: str) -> Path:
@@ -35,21 +19,46 @@ def resolve_path(file_id: str) -> Path:
 
 
 def run_ai_review(file_id: str) -> dict:
+    """
+    Run AI code review on an uploaded file.
+    
+    Returns:
+    {
+        "bugs": [...],
+        "code_smells": [...],
+        "suggestions": [...],
+        "complexity_rating": int,
+        "overall_score": int,
+        "file": {...}
+    }
+    """
     path = resolve_path(file_id)
     if path is None:
         return {"error": f"File not found: {file_id}"}
 
     content = read_file(str(path))
-    extension = path.suffix.lower()
-    language = EXTENSION_LANGUAGE_MAP.get(extension, "unknown")
+    filename = path.name.split("_", 1)[1] if "_" in path.name else path.name
 
-    result = ai_review_module.review_code(content, language)
-
-    # Attach file metadata for the frontend
-    result["file"] = {
-        "file_id": file_id,
-        "filename": path.name.split("_", 1)[1],
-        "language": language,
-    }
-
-    return result
+    # Build prompt
+    prompt = build_review_prompt(content, filename)
+    
+    # Call Gemini
+    try:
+        raw_response = call_gemini(prompt)
+        review = parse_review_response(raw_response)
+        
+        result = review.dict()
+        result["file"] = {
+            "file_id": file_id,
+            "filename": filename,
+        }
+        
+        return result
+    except Exception as e:
+        return {
+            "error": f"AI review failed: {str(e)}",
+            "file": {
+                "file_id": file_id,
+                "filename": filename,
+            }
+        }

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Calendar, Play, MoreVertical, ChevronRight, Users, Clock, Target, TrendingUp } from 'lucide-react';
 import '@/styles/plagiarism.css';
+import { getAssignmentDetails, analyzePlagiarism } from '@/lib/api';
 
 const ParticleBackground = dynamic(() => import('@/components/shared/ThreeBackground'), {
   ssr: false,
@@ -126,12 +127,50 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
+  const [assignment, setAssignment] = React.useState<any>(null);
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
 
-  const assignment = mockAssignments.find(a => a.id === params.id);
+  React.useEffect(() => {
+    async function loadAssignment() {
+      try {
+        setLoading(true);
+        const result = await getAssignmentDetails(params.id);
+        if (result.success) {
+          setAssignment(result.assignment);
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to load assignment:', error);
+        setLoading(false);
+      }
+    }
+    loadAssignment();
+  }, [params.id]);
+
+  const handleRunAnalysis = async () => {
+    try {
+      setLoading(true);
+      await analyzePlagiarism(params.id);
+      alert('Analysis complete! View the plagiarism report.');
+      setLoading(false);
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      alert('Failed to analyze assignment. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <main className="h-screen flex items-center justify-center bg-transparent">
+        <div className="text-white text-xl">Loading assignment...</div>
+      </main>
+    );
+  }
 
   if (!assignment) {
     return (
@@ -206,7 +245,7 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
     }
   };
 
-  const statusColor = getStatusColor(assignment.status);
+  const statusColor = getStatusColor(assignment.status || 'active');
 
   return (
     <main className="h-screen flex flex-col overflow-hidden bg-transparent" suppressHydrationWarning>
@@ -278,10 +317,10 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
                     backgroundColor: statusColor.bg
                   }}
                 >
-                  {assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
+                  {(assignment.status || 'active').charAt(0).toUpperCase() + (assignment.status || 'active').slice(1)}
                 </span>
               </div>
-              <p className="text-white/60 max-w-2xl">{assignment.description}</p>
+              <p className="text-white/60 max-w-2xl">{assignment.description || 'No description available'}</p>
             </div>
           </div>
 
@@ -292,28 +331,28 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
                 <Users size={16} className="text-[#c8a84b]" />
                 <div className="text-xs text-white/50 font-syne">Submissions</div>
               </div>
-              <div className="text-2xl font-bold text-[#e0b84e]">{assignment.submissions}</div>
+              <div className="text-2xl font-bold text-[#e0b84e]">{assignment.total_submissions || 0}</div>
             </div>
             <div className="card-glassmorphism rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Target size={16} className="text-[#c8a84b]" />
                 <div className="text-xs text-white/50 font-syne">Flagged</div>
               </div>
-              <div className="text-2xl font-bold text-[#e0b84e]">{assignment.flagged}</div>
+              <div className="text-2xl font-bold text-[#e0b84e]">{assignment.flagged || 0}</div>
             </div>
             <div className="card-glassmorphism rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp size={16} className="text-[#c8a84b]" />
                 <div className="text-xs text-white/50 font-syne">Avg Score</div>
               </div>
-              <div className="text-2xl font-bold text-[#e0b84e]">{assignment.avgScore}%</div>
+              <div className="text-2xl font-bold text-[#e0b84e]">{assignment.avg_score || 0}%</div>
             </div>
             <div className="card-glassmorphism rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Clock size={16} className="text-[#c8a84b]" />
                 <div className="text-xs text-white/50 font-syne">Deadline</div>
               </div>
-              <div className="text-lg font-bold text-[#e0b84e] font-jetbrains">{assignment.deadline}</div>
+              <div className="text-lg font-bold text-[#e0b84e] font-jetbrains">{assignment.deadline || 'N/A'}</div>
             </div>
           </div>
 
@@ -323,14 +362,18 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
             <div className="card-glassmorphism rounded-xl p-6 flex flex-col">
               <div className="section-label mb-4">REQUIREMENTS</div>
               <div className="flex-1 overflow-y-auto scrollbar-hide">
-                <ul className="space-y-3">
-                  {assignment.requirements?.map((req, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <div className="w-2 h-2 rounded-full bg-[#c8a84b] mt-2 flex-shrink-0"></div>
-                      <span className="text-white/80 text-sm">{req}</span>
-                    </li>
-                  ))}
-                </ul>
+                {assignment.requirements && assignment.requirements.length > 0 ? (
+                  <ul className="space-y-3">
+                    {assignment.requirements.map((req: string, index: number) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <div className="w-2 h-2 rounded-full bg-[#c8a84b] mt-2 flex-shrink-0"></div>
+                        <span className="text-white/80 text-sm">{req}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-white/60 text-sm">No requirements specified for this assignment.</p>
+                )}
               </div>
             </div>
 
@@ -338,15 +381,25 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
             <div className="card-glassmorphism rounded-xl p-6 flex flex-col">
               <div className="section-label mb-4">ACTIONS</div>
               <div className="space-y-4">
-                <Link href={`/assignments/${assignment.id}/plagiarism`} className="ghost-button-new w-full justify-center">
+                <button 
+                  onClick={() => router.push(`/assignments/${assignment.id}/plagiarism`)} 
+                  className="ghost-button-new w-full justify-center"
+                >
                   <Target size={16} />
                   <span className="text-sm font-semibold">View Plagiarism Report</span>
-                </Link>
-                <button className="ghost-button-new w-full justify-center">
-                  <Play size={16} />
-                  <span className="text-sm font-semibold">Run Analysis</span>
                 </button>
-                <button className="ghost-button-new w-full justify-center">
+                <button 
+                  onClick={handleRunAnalysis} 
+                  disabled={loading} 
+                  className="ghost-button-new w-full justify-center"
+                >
+                  <Play size={16} />
+                  <span className="text-sm font-semibold">{loading ? 'Analyzing...' : 'Run Analysis'}</span>
+                </button>
+                <button 
+                  onClick={() => router.push(`/submissions?assignment=${assignment.id}`)} 
+                  className="ghost-button-new w-full justify-center"
+                >
                   <Users size={16} />
                   <span className="text-sm font-semibold">View Submissions</span>
                 </button>
